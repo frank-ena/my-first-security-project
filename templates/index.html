@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Port Scanner</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 40px; display: flex; justify-content: center; }
+        .container { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px gray; width: 350px; }
+        h2 { text-align: center; color: black; }
+        input, button { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; border-radius: 4px; }
+        input { border: 1px solid silver; }
+        button { background: blue; color: white; border: none; font-size: 16px; cursor: pointer; }
+        button:hover { background: darkblue; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid lightgray; padding: 8px; text-align: center; }
+        th { background: #f4f4f4; }
+        .open { color: green; font-weight: bold; }
+        .closed { color: #555; }
+        .timeout, .unreachable { color: #a45a00; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🛡️ Port Scanner</h2>
+    <p>Scanning is restricted to localhost and private-network addresses.</p>
+    <label for="accessToken">Access token:</label>
+    <input type="password" id="accessToken" autocomplete="current-password" required>
+    <label for="targetIP">Target IP or hostname:</label>
+    <input type="text" id="targetIP" value="127.0.0.1">
+    <button onclick="startScan()">Start Scan</button>
+    <div id="results"></div>
+</div>
+
+<script>
+    async function startScan() {
+        const target = document.getElementById('targetIP').value;
+        const accessToken = document.getElementById('accessToken').value;
+        const resultsDiv = document.getElementById('results');
+        
+        if (!target.trim()) return alert('Enter an IP address or hostname');
+        if (!accessToken.trim()) return alert('Enter the access token');
+        resultsDiv.textContent = 'Scanning...';
+
+        try {
+            let response = await fetch('/scan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({ target })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                const table = document.createElement('table');
+                const header = table.insertRow();
+                header.insertCell().textContent = 'Port';
+                header.insertCell().textContent = 'Status';
+
+                data.results.forEach(item => {
+                    const row = table.insertRow();
+                    row.insertCell().textContent = item.port;
+                    const statusCell = row.insertCell();
+                    statusCell.textContent = item.status;
+                    statusCell.className = item.status.toLowerCase();
+                });
+                resultsDiv.replaceChildren(table);
+            } else {
+                resultsDiv.textContent = `Error: ${data.error}`;
+            }
+        } catch {
+            resultsDiv.textContent = 'Connection failed.';
+        }
+    }
+</script>
+
+</body>
+</html>
