@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: port-scanner
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python -m unittest discover -s . -p "test_*.py" -v
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SCAN_ACCESS_TOKEN
+        generateValue: true
