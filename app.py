@@ -1,4 +1,3 @@
-
 import errno
 import hmac
 import ipaddress
@@ -37,7 +36,7 @@ def resolve_allowed_target(target_host):
 
     for family, _, _, _, sockaddr in addresses:
         address = ipaddress.ip_address(sockaddr[0].split("%", 1)[0])
-        if address.ipv4_mapped is not None:
+        if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped is not None:
             address = address.ipv4_mapped
             family = socket.AF_INET
 
